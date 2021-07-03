@@ -16,14 +16,14 @@ class CategoryTransformer extends JsonResource
    * @var ThumbnailManager
    */
   private $thumbnailManager;
-  
+
   public function __construct($resource)
   {
     parent::__construct($resource);
-    
+
     $this->imagy = app(Imagy::class);
   }
-  
+
   public function toArray($request)
   {
     $data = [
@@ -45,6 +45,8 @@ class CategoryTransformer extends JsonResource
       'status' => $this->when($this->status, $this->status),
       'createdAt' => $this->when($this->created_at, $this->created_at),
       'updatedAt' => $this->when($this->updated_at, $this->updated_at),
+      'deletedAt' => $this->when($this->deleted_at, $this->deleted_at),
+      'deleted' => !empty($this->deleted_at) ?1:0,
       'options' => $this->when($this->options, $this->options),
       'parent' => new CategoryTransformer($this->whenLoaded('parent')),
       'parentId' => $this->parent_id,
@@ -52,14 +54,14 @@ class CategoryTransformer extends JsonResource
       'posts' => PostTransformer::collection($this->whenLoaded('posts')),
       'mediaFiles' => $this->mediaFiles()
     ];
-    
+
     $filter = json_decode($request->filter);
-    
+
     // Return data with available translations
     if (isset($filter->allTranslations) && $filter->allTranslations) {
       // Get langs avaliables
       $languages = \LaravelLocalization::getSupportedLocales();
-      
+
       foreach ($languages as $lang => $value) {
         $data[$lang]['title'] = $this->hasTranslation($lang) ?
           $this->translate("$lang")['title'] : '';
@@ -73,7 +75,7 @@ class CategoryTransformer extends JsonResource
           $this->translate("$lang")['meta_description'] : '';
       }
     }
-    
+
     return $data;
   }
 }

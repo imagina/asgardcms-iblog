@@ -4,9 +4,11 @@ namespace Modules\Iblog\Entities;
 
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Laracasts\Presenter\PresentableTrait;
 use Modules\Core\Traits\NamespacedEntity;
 use Modules\Iblog\Presenters\PostPresenter;
+use Modules\Ihelpers\Traits\UserStamps;
 use Modules\Media\Entities\File;
 use Modules\Media\Support\Traits\MediaRelation;
 use Modules\Tag\Contracts\TaggableInterface;
@@ -14,11 +16,13 @@ use Modules\Tag\Traits\TaggableTrait;
 
 class Post extends Model implements TaggableInterface
 {
-    use Translatable, PresentableTrait, NamespacedEntity, TaggableTrait, MediaRelation;
+    use Translatable, PresentableTrait, NamespacedEntity, TaggableTrait, MediaRelation, UserStamps, SoftDeletes;
 
     protected static $entityNamespace = 'asgardcms/post';
 
     protected $table = 'iblog__posts';
+
+    protected $softdeleting = true;
 
     protected $fillable = [
         'options',
@@ -146,21 +150,13 @@ class Post extends Model implements TaggableInterface
     public function getUrlAttribute()
     {
       $useOldRoutes = config('asgard.iblog.config.useOldRoutes') ?? false;
-      $currentLocale = \LaravelLocalization::getCurrentLocale();
-      
+
+
       $category = $this->category;
-      
-      if(empty($category->slug))
-        $category = $category->getTranslation(\LaravelLocalization::getDefaultLocale());
-      
-      if(empty($this->slug)){
-        $post = $this->getTranslation(\LaravelLocalization::getDefaultLocale());
-        $this->slug = $post->slug;
-      }
-      
-  
-  
-  
+
+      if(!$category)
+          return null;
+
       if ($useOldRoutes){
         if (!isset($category->slug)) {
           if (!empty($this->categories)) {
@@ -173,15 +169,13 @@ class Post extends Model implements TaggableInterface
           }
         }
 
-        return \URL::route($currentLocale. '.iblog.'.$category->slug.'.post', [$this->slug]);
-  
+        return \URL::route(\LaravelLocalization::getCurrentLocale() . '.iblog.'.$category->slug.'.post', [$this->slug]);
+
       }else{
-        
-       
-        return \URL::route($currentLocale. '.iblog.blog.show', [$category->slug, $this->slug]);
-  
+        return \URL::route(\LaravelLocalization::getCurrentLocale() . '.iblog.blog.show', [$category->slug,$this->slug]);
+
       }
-  
+
     }
 
     /**

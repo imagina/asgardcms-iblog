@@ -48,12 +48,12 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
 
         return $query->paginate(setting('iblog::posts-per-page'));
     }
-    
+
     public function whereTag($slug)
     {
       /*== initialize query ==*/
       $query = $this->model->query();
-  
+
       /*== RELATIONSHIPS ==*/
       if (in_array('*', $params->include ?? [])) {//If Request all relationships
         $query->with(['categories', 'category', 'tags', 'user', 'translations']);
@@ -156,7 +156,7 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
         /*== FILTERS ==*/
         if (isset($params->filter)) {
             $filter = $params->filter;//Short filter
-          
+
           // add filter by Categories 1 or more than 1, in array/*
           if (isset($filter->categories) && !empty($filter->categories)) {
             is_array($filter->categories) ? true : $filter->categories = [$filter->categories];
@@ -165,45 +165,53 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
                 $query->whereIn('iblog__post__category.category_id', $filter->categories);
               })->orWhereIn('category_id', $filter->categories);
             });
-    
+
           }
-  
+
+          if(isset($filter->onlyTrashed) && $filter->onlyTrashed){
+              $query->onlyTrashed();
+          }
+
+          if(isset($filter->withTrashed) && $filter->withTrashed){
+              $query->withTrashed();
+          }
+
           //Filter by featured
           if (isset($filter->featured) && is_bool($filter->featured)) {
             $query->where("featured", $filter->featured);
           }
-  
+
           //Filter by catgeory ID
           if (isset($filter->category) && !empty($filter->category)) {
-            
+
             $categories = Category::descendantsAndSelf($filter->category);
-    
+
             if ($categories->isNotEmpty()) {
               $query->where(function ($query) use ($categories) {
-        
+
                 $query->where(function ($query) use ($categories) {
                   $query->whereHas('categories', function ($query) use ($categories) {
                     $query->whereIn('iblog__post__category.category_id', $categories->pluck("id"));
                   })->orWhereIn('iblog__posts.category_id', $categories->pluck("id"));
                 });
               });
-      
+
             }
-    
-    
+
+
           }
           if (isset($filter->tagId)) {
-    
+
             $query->whereTag($filter->tagId,"id");
-    
-    
+
+
           }
-  
+
           if (isset($filter->tagSlug) ) {
-    
+
             $query->whereTag($filter->tagSlug);
-    
-    
+
+
           }
 
             if (isset($filter->users) && !empty($filter->users)) {
@@ -237,21 +245,21 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
 
                 $query->whereTag($filter->tag);
             }
-  
-  
+
+
           // add filter by search
           if (isset($filter->search) && !empty($filter->search)) {
             // removing symbols used by MySQL
             $filter->search = preg_replace("/[^a-zA-Z0-9]+/", " ", $filter->search);
             $words = explode(" ", $filter->search);//Explode
-    
+
             //Validate words of minum 3 length
             foreach ($words as $key => $word) {
               if (strlen($word) >= 3) {
                 $words[$key] = '+' . $word . '*';
               }
             }
-    
+
             //Search query
             $query->leftJoin(\DB::raw(
               "(SELECT MATCH (title) AGAINST ('(" . implode(" ", $words) . ") (" . $filter->search . ")' IN BOOLEAN MODE) scoreSearch, post_id, title " .
@@ -260,7 +268,7 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
             ), 'ptrans.post_id', 'iblog__posts.id')
               ->where('scoreSearch', '>', 0)
               ->orderBy('scoreSearch', 'desc');
-    
+
             //Remove order by
             unset($filter->order);
           }
@@ -292,14 +300,14 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
             }
 
         }
-  
+
       //Order by "Sort order"
       if (!isset($params->filter->noSortOrder) || !$params->filter->noSortOrder) {
         $query->orderBy('sort_order', 'desc');//Add order to query
       }
-  
+
       if (isset($params->setting) && isset($params->setting->fromAdmin) && $params->setting->fromAdmin) {
-    
+
       } else {
         //Pre filters by default
         //pre-filter date_available
@@ -307,17 +315,17 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
           $query->where("date_available", "<=", date("Y-m-d", strtotime(now())));
           $query->orWhereNull("date_available");
         });
-        
+
         //pre-filter status
         $query->where("status", 2);
-    
+
       }
-      
+
       // ORDER
       if (isset($params->order) && $params->order) {
-    
+
         $order = is_array($params->order) ? $params->order : [$params->order];
-    
+
         foreach ($order as $orderObject) {
           if (isset($orderObject->field) && isset($orderObject->way)) {
             if (in_array($orderObject->field, $this->model->translatedAttributes)) {
@@ -326,14 +334,14 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
             } else
               $query->orderBy($orderObject->field, $orderObject->way);
           }
-      
+
         }
       }
-  
+
       /*== FIELDS ==*/
       if (isset($params->fields) && count($params->fields))
         $query->select($params->fields);
-  
+
       //dd($query->toSql());
       /*== REQUEST ==*/
       if (isset($params->onlyQuery) && $params->onlyQuery) {
@@ -375,6 +383,14 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
             if (isset($filter->field))//Filter by specific field
                 $field = $filter->field;
 
+            if(isset($filter->onlyTrashed) && $filter->onlyTrashed){
+                $query->onlyTrashed();
+            }
+
+            if(isset($filter->withTrashed) && $filter->withTrashed){
+                $query->withTrashed();
+            }
+
             // find translatable attributes
             $translatedAttributes = $this->model->translatedAttributes;
 
@@ -388,9 +404,9 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
                 // find by specific attribute or by id
                 $query->where($field ?? 'id', $criteria);
         }
-  
+
       if (isset($params->setting) && isset($params->setting->fromAdmin) && $params->setting->fromAdmin) {
-    
+
       } else {
         //Pre filters by default
         //pre-filter date_available
@@ -398,10 +414,10 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
           $query->where("date_available", "<=", date("Y-m-d", strtotime(now())));
           $query->orWhereNull("date_available");
         });
-        
+
         //pre-filter status
         $query->where("status", 2);
-    
+
       }
 
         /*== FIELDS ==*/
@@ -412,7 +428,7 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
         return $query->first();
 
     }
-  
+
   /**
    * Standard Api Method
    * @param $criteria
@@ -424,16 +440,16 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
   {
     /*== initialize query ==*/
     $query = $this->model->query();
-    
+
     /*== FILTER ==*/
     if (isset($params->filter)) {
       $filter = $params->filter;
-      
+
       //Update by field
       if (isset($filter->field))
         $field = $filter->field;
     }
-    
+
     /*== REQUEST ==*/
     $model = $query->where($field ?? 'id', $criteria)->first();
     $model ? $model->update((array)$data) : false;
@@ -443,7 +459,7 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
     event(new PostWasUpdated($model, $data));
     $model->setTags(Arr::get($data, 'tags', []));
   }
-  
+
   /**
    * Standard Api Method
    * @param $criteria
@@ -453,20 +469,20 @@ class EloquentPostRepository extends EloquentBaseRepository implements PostRepos
   {
     /*== initialize query ==*/
     $query = $this->model->query();
-    
+
     /*== FILTER ==*/
     if (isset($params->filter)) {
       $filter = $params->filter;
-      
+
       if (isset($filter->field))//Where field
         $field = $filter->field;
     }
-    
+
     /*== REQUEST ==*/
     $model = $query->where($field ?? 'id', $criteria)->first();
     $model ? $model->delete() : false;
     event(new DeleteMedia($model->id, get_class($model)));
-    
+
   }
 
 

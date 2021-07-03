@@ -30,6 +30,8 @@ class PostTransformer extends JsonResource
       'sortOrder' => !$this->sort_order ? "0": (string)$this->sort_order,
       'updatedAt' => $this->when($this->updated_at, $this->updated_at),
       'createdAt' => $this->when($this->created_at, $this->created_at),
+      'deletedAt' => $this->when($this->deleted_at, $this->deleted_at),
+      'deleted' => !empty($this->deleted_at) ?1:0,
       'options' => $this->when($this->options, $this->options),
       'category' => new CategoryTransformer($this->whenLoaded('category')),
       'categoryId' => $this->when($this->category_id, $this->category_id),
@@ -37,17 +39,17 @@ class PostTransformer extends JsonResource
       'categories' => CategoryTransformer::collection($this->whenLoaded('categories')),
       'mediaFiles' => $this->mediaFiles()
     ];
-    
+
     foreach ($this->tags as $tag) {
       $data['tags'][] = $tag->name;
     }
     $filter = json_decode($request->filter);
-    
+
     // Return data with available translations
     if (isset($filter->allTranslations) && $filter->allTranslations) {
       // Get langs avaliables
       $languages = \LaravelLocalization::getSupportedLocales();
-      
+
       foreach ($languages as $lang => $value) {
         $data[$lang]['title'] = $this->hasTranslation($lang) ?
           $this->translate("$lang")['title'] : '';
@@ -65,8 +67,8 @@ class PostTransformer extends JsonResource
           $this->translate("$lang")['meta_keywords'] : '';
       }
     }
-    
+
     return $data;
-    
+
   }
 }

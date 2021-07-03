@@ -29,6 +29,9 @@ return [
         'published' => 'Publicado',
         'unpublished' => 'En espera',
     ],
+    'settings' => [
+        'defaultImageBlogBreadcrumb' => 'Imagen por defecto para el Breadcrumb del Blog',
+    ],
 
     'status_text' => 'Estado',
 
@@ -44,7 +47,7 @@ return [
 
     'date'      =>  'Fecha y hora',
     'optional'  =>  '(Opcional)',
-    
+
     'summary' => 'Sumario',
     'content' => 'Content',
 
@@ -56,8 +59,8 @@ return [
     'admin_notes' => 'Notas de Administración',
     'created_at' => 'Fecha de Creación',
     'parent' => 'Superior',
-  
-  
+
+
   'social' => [
     'share' => 'Compartir'
   ],

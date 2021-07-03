@@ -81,14 +81,22 @@ class EloquentCategoryRepository extends EloquentBaseRepository implements Categ
                 });
         })->orWhere('id', 'like', '%' . $filter->search . '%');
             }
-  
-  
+
+
           //add filter by showMenu
           if (isset($filter->showMenu)&& is_bool($filter->showMenu)) {
             $query->where('show_menu', $filter->showMenu);
           }
-  
-  
+
+            if(isset($filter->onlyTrashed) && $filter->onlyTrashed){
+                $query->onlyTrashed();
+            }
+
+            if(isset($filter->withTrashed) && $filter->withTrashed){
+                $query->withTrashed();
+            }
+
+
           //Filter by date
             if (isset($filter->date)) {
                 $date = $filter->date;//Short filter date
@@ -102,6 +110,11 @@ class EloquentCategoryRepository extends EloquentBaseRepository implements Categ
                 if (isset($filter->store)) {
                     $query->where('store_id',$filter->store);
                 }
+            }
+
+            if (isset($filter->ids)) {
+                is_array($filter->ids) ? true : $filter->ids = [$filter->ids];
+                $query->whereIn('iblog__categories.id', $filter->ids);
             }
             //Order by
             if (isset($filter->order)) {
@@ -151,6 +164,14 @@ class EloquentCategoryRepository extends EloquentBaseRepository implements Categ
             if (isset($filter->field))//Filter by specific field
                 $field = $filter->field;
 
+            if(isset($filter->onlyTrashed) && $filter->onlyTrashed){
+                $query->onlyTrashed();
+            }
+
+            if(isset($filter->withTrashed) && $filter->withTrashed){
+                $query->withTrashed();
+            }
+
             // find translatable attributes
             $translatedAttributes = $this->model->translatedAttributes;
 
@@ -197,7 +218,7 @@ class EloquentCategoryRepository extends EloquentBaseRepository implements Categ
     public function update($category, $data)
     {
         $category->update($data);
-    
+
         event(new CategoryWasUpdated($category, $data));
 
         return $category;
@@ -248,6 +269,7 @@ class EloquentCategoryRepository extends EloquentBaseRepository implements Categ
     {
         /*== initialize query ==*/
         $query = $this->model->query();
+        $restore = false;
 
         /*== FILTER ==*/
         if (isset($params->filter)) {
@@ -255,14 +277,17 @@ class EloquentCategoryRepository extends EloquentBaseRepository implements Categ
 
             if (isset($filter->field))//Where field
                 $field = $filter->field;
+            if(isset($filter->restore))
+                $restore = $filter->restore;
         }
 
         /*== REQUEST ==*/
-        $model = $query->where($field ?? 'id', $criteria)->first();
-        $model ? $model->delete() : false;
-        event(new DeleteMedia($model->id, get_class($model)));
+        $model = $query->where($field ?? 'id', $criteria)->withTrashed()->first();
+        if($model) {
+            $restore === true ? $model->restore() : $model->delete();
+            $restore === true ?: event(new DeleteMedia($model->id, get_class($model)));
+        }
 
     }
-
 
 }

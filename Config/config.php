@@ -2,9 +2,9 @@
 
 return [
   'name' => 'Iblog',
-  
+
   'middleware' => [],
-  
+
   'imageSize' => ['width' => 1024, 'height' => 768, 'quality' => 80],
   'mediumThumbSize' => ['width' => 400, 'height' => 300, 'quality' => 80],
   'smallThumbSize' => ['width' => 100, 'height' => 80, 'quality' => 80],
@@ -77,16 +77,16 @@ return [
 
  |
  */
-  
+
   'localeTime' => 'es_CO.UTF-8',
-  
+
   /*
    |--------------------------------------------------------------------------
    | Array of directories to ignore when selecting the template for a Iblog
    |--------------------------------------------------------------------------
    */
   'template-ignored-directories' => [],
-  
+
   /*
 |--------------------------------------------------------------------------
 | Iblog timezone Configuration
@@ -97,9 +97,9 @@ return [
 | to any of the locales which will be supported by the application.
 |
 */
-  
+
   'dateTimezone' => 'America/Bogota',
-  
+
   /*
 |--------------------------------------------------------------------------
 | Iblog og:locale Configuration
@@ -110,9 +110,9 @@ return [
 | to any of the locales which will be supported by the application.
 |
 */
-  
+
   'oglocale' => 'es_LA',
-  
+
   /*
   |--------------------------------------------------------------------------
   | Iblog Watermark Configuration
@@ -121,7 +121,7 @@ return [
   |
   |
   */
-  
+
   'watermark' => [
     'activated' => false,
     'url' => 'modules/iblog/img/watermark/watermark.png',
@@ -129,9 +129,9 @@ return [
     'x' => 10,
     'y' => 10,
   ],
-  
+
   'dateFormat' => '%A, %B %d, %Y',
-  
+
   /*
      |--------------------------------------------------------------------------
      | Iblog feed Configuration
@@ -140,7 +140,7 @@ return [
      |
      |
      */
-  
+
   'feed' => [
     'activated' => true,
     'postPerFeed' => 20,
@@ -158,14 +158,14 @@ return [
       'iconimage' => 'single'
     ]
   ],
-  
+
   /*
  |--------------------------------------------------------------------------
  | Define routes to sites with old routes
  |--------------------------------------------------------------------------
  */
   'useOldRoutes' => false,
-  
+
   /*
   |--------------------------------------------------------------------------
   | Define custom middlewares to apply to the all frontend routes
@@ -173,7 +173,7 @@ return [
   | example: 'logged.in' , 'auth.basic', 'throttle'
   */
   'middlewares' => [],
-  
+
   /*Layout Posts - Index */
   'layoutIndex' => [
     'default' => 'three',
@@ -198,13 +198,13 @@ return [
       ],
     ]
   ],
-  
+
   "indexItemListAttributes" => [
     'withCreatedDate' => true,
     'withViewMoreButton' => true,
-  
+
   ],
-  
+
   /*
 |--------------------------------------------------------------------------
 | Filters to the index page
@@ -246,7 +246,7 @@ return [
       'classes' => 'col-12'
     ]
   ],
-  
+
   /*
 |--------------------------------------------------------------------------
 | Custom Includes Before Filters
@@ -255,7 +255,7 @@ return [
   'customIncludesBeforeFilters' => [
   /*
    "iblog.partials.beforeFilter"
-  
+
   */
   ],
   /*
@@ -266,10 +266,10 @@ return [
   'customIncludesAfterFilters' => [
     /*
      "iblog.partials.beforeFilter"
-    
+
     */
   ],
-  
+
   /*
 |--------------------------------------------------------------------------
 | Custom classes to the index cols

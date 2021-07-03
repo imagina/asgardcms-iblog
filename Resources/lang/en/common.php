@@ -29,6 +29,9 @@ return [
         'published' => 'Published',
         'unpublished' => 'Unpublished',
     ],
+    'settings' => [
+        'defaultImageBlogBreadcrumb' => 'Default Image for Blog Breadcrumb',
+    ],
 
     'status_text' => 'Estatus',
 

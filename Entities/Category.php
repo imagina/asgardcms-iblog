@@ -4,8 +4,10 @@ namespace Modules\Iblog\Entities;
 
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Laracasts\Presenter\PresentableTrait;
 use Modules\Core\Traits\NamespacedEntity;
+use Modules\Ihelpers\Traits\UserStamps;
 use Modules\Media\Entities\File;
 use Kalnoy\Nestedset\NodeTrait;
 use Modules\Media\Support\Traits\MediaRelation;
@@ -13,9 +15,11 @@ use Illuminate\Support\Str;
 
 class Category extends Model
 {
-    use Translatable, MediaRelation, PresentableTrait, NamespacedEntity, NodeTrait;
+    use Translatable, MediaRelation, PresentableTrait, NamespacedEntity, NodeTrait, UserStamps, SoftDeletes;
 
     protected $table = 'iblog__categories';
+
+    protected $softdeleting = true;
 
     protected $fillable = [
       'parent_id',
@@ -36,7 +40,7 @@ class Category extends Model
     protected $casts = [
         'options' => 'array'
     ];
-    
+
 
     /*
     |--------------------------------------------------------------------------
@@ -109,7 +113,7 @@ class Category extends Model
 
     }
 
-  
+
   public function getUrlAttribute()
   {
     $url = "";
@@ -117,20 +121,19 @@ class Category extends Model
     $currentLocale = \LaravelLocalization::getCurrentLocale();
 //dd($useOldRoutes);
     if(empty($this->slug)){
-  
+
       $category = $this->getTranslation(\LaravelLocalization::getDefaultLocale());
       $this->slug = $category->slug;
     }
-    
+
 
     if (!(request()->wantsJson() || Str::startsWith(request()->path(), 'api'))) {
       if ($useOldRoutes) {
         $url = \URL::route($currentLocale . '.iblog.category.' . $this->slug);
       } else {
-   
-        //dd(\URL::route($currentLocale . '.iblog.blog.index.category', $this->slug));
+
         $url = \URL::route($currentLocale . '.iblog.blog.index.category', $this->slug);
-        
+
       }
     }
     return $url;
@@ -164,25 +167,25 @@ class Category extends Model
         #i: No relation found, return the call to parent (Eloquent) to handle it.
         return parent::__call($method, $parameters);
     }
-  
+
   public function getLftName()
   {
     return 'lft';
   }
-  
+
   public function getRgtName()
   {
     return 'rgt';
   }
-  
+
   public function getDepthName()
   {
     return 'depth';
   }
-  
+
   public function getParentIdName()
   {
     return 'parent_id';
   }
-  
+
 }
